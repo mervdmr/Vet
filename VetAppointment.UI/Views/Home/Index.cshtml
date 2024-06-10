@@ -1,0 +1,30 @@
+﻿<div class="jumbotron jumbotron-bg">
+    <div class="container">
+        <h1 class="display-4">Hoşgeldiniz!</h1>
+        <p class="lead">Randevu sistemimize hoşgeldiniz. Kolayca randevu alın ve yönetim sağlayın.</p>
+        <hr class="my-4">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <p>Daha fazla bilgi için aşağıdaki butonları kullanabilirsiniz.</p>
+            <a class="btn btn-primary btn-lg" href="/Appointment/AddAppointment" role="button">Randevu Al</a>
+            <a class="btn btn-secondary btn-lg" href="/Appointment/GetMyAppointments" role="button">Randevularımı Gör</a>
+        }
+
+    </div>
+</div>
+
+<section class="features">
+    <h2>Özellikler</h2>
+    <div class="feature-item">
+        <h3>Kolay Kullanım</h3>
+        <p>Sistemimiz kullanıcı dostu arayüzü ile kolayca randevu almanıza olanak sağlar.</p>
+    </div>
+    <div class="feature-item">
+        <h3>Güvenilirlik</h3>
+        <p>Randevularınızı güvenli bir şekilde yönetin ve takip edin.</p>
+    </div>
+    <div class="feature-item">
+        <h3>Esneklik</h3>
+        <p>İstediğiniz zaman randevularınızı iptal edin veya güncelleyin.</p>
+    </div>
+</section>

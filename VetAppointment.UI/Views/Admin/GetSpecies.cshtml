@@ -1,0 +1,62 @@
+﻿@model List<VetAppointment.Lib.Domain.Species>
+@inject VetAppointment.Lib.App.Model.IAppContext _appContext;
+
+@{
+    ViewData["Title"] = "Tür List";
+}
+
+<div class="container mt-5">
+    <h3 class="text-center">Tür Listesi</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Adı</th>
+                <th>Kayıt Tarihi</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var species in Model)
+            {
+                <tr>
+                    <td>@species.Name</td>
+                    <td>@species.CreatedDateTime.ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <button type="button" class="btn btn-danger cancel-button delete-species" data-id="@species.Id">Sil</button>
+                        <a href="/Admin/AddSpecies?speciesId=@species.Id" class="btn btn-primary cancel-button">Düzenle</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.delete-species').on('click', function () {
+                var row = $(this).closest('tr');
+                var userId = $(this).attr('data-id');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Admin/DeleteSpecies',
+                    data: JSON.stringify({ id: userId }),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            row.remove();
+                            HandleReturnModel(response);
+                        } else {
+                            alert('Bir hata oluştu: ' + response.Message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Bir hata oluştu: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}

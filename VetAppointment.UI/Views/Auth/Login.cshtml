@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Giriş Yap</h3>
+                </div>
+                <div class="card-body">
+                    <div id="loginError" class="text-danger mb-3"></div>
+
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <input type="email" id="Email" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Password">Şifre</label>
+                        <input type="password" id="Password" class="form-control" />
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <button id="loginButton" class="btn btn-primary btn-block">Giriş Yap</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+            $('#loginButton').on('click', function (e) {
+                e.preventDefault();
+
+                var formData = {
+                    Email: $('#Email').val(),
+                    Password: $('#Password').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Auth/Login',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (response) {
+                        HandleReturnModel(response);
+                    },
+                    error: function (xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}

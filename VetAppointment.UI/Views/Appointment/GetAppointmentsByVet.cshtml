@@ -1,0 +1,66 @@
+﻿@model List<VetAppointment.Lib.Domain.Appointment>
+
+
+@{
+    ViewData["Title"] = "Appointment List";
+}
+
+<div class="container mt-5">
+    <h3 class="text-center">Randevular</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Adı Soyadı</th>
+                <th>Klinik Adı</th>
+                <th>Hayvan Adı</th>
+                <th>Hayvan Türü</th>
+                <th>Randevu Tarihi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in Model)
+            {
+                <tr>
+                    <td>@appointment.User.FullName</td>
+                    <td>@appointment.Clinic.Name</td>
+                    <td>@appointment.Pet.Name</td>
+                    <td>@appointment.Pet.Species.Name</td>
+                    <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd") @string.Format("{0:D2}:{1:D2}", appointment.StartTime.Hours, appointment.StartTime.Minutes)</td>
+                    <td>
+                        <button type="button" data-id="@appointment.Id" class="btn btn-danger cancel-button">İptal Et</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+            $('.cancel-button').on('click', function () {
+                var row = $(this).closest('tr');
+                var appointmentId = $(this).attr('data-id');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Appointment/DeleteAppointment',
+                    data: { id: appointmentId },
+
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            alert(response.Message);
+                            row.remove();
+                        } else {
+                            alert('Randevuyu iptal etme işlemi başarısız: ' + response.Message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Bir hata oluştu: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}

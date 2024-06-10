@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Veteriner Randevu Sistemi</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/VetAppointment.UI.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+
+
+
+        .container-fluid {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            flex-grow: 1;
+        }
+
+        footer {
+            position: relative; /* Footer'ı sayfanın altına sabitleme */
+        }
+    </style>
+</head>
+<body>
+    @inject VetAppointment.Lib.App.Model.IAppContext _appContext;
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Veteriner Randevu Sistemi</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Anasayfa</a>
+                        </li>
+
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Giriş Yap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Register">Kayıt Ol</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <nav class="sidebar bg-light border-right">
+                <div class="list-group list-group-flush">
+                    @if (_appContext.IsVet)
+                    {
+                        <a href="/Appointment/GetAppointmentsByVet" class="list-group-item list-group-item-action bg-light">Randevular</a>
+                    }
+                    else
+                    {
+                        <a href="/Appointment/GetMyAppointments" class="list-group-item list-group-item-action bg-light">Randevular</a>
+                        <a href="/Appointment/AddAppointment" class="list-group-item list-group-item-action bg-light">Randevu Oluştur</a>
+                    }
+
+                    @if (_appContext.IsVet || _appContext.IsSuperAdmin)
+                    {
+                        <a href="/Clinic/GetClinicsByVet" class="list-group-item list-group-item-action bg-light">Klinikler</a>
+                        <a href="/Clinic/AddClinic" class="list-group-item list-group-item-action bg-light">Klinik Ekle</a>
+                    }
+                    @if (_appContext.IsSuperAdmin)
+                    {
+                        <a href="/Admin/GetUsers" class="list-group-item list-group-item-action bg-light">Kullanıcılar</a>
+                        <a href="/Admin/AddUser" class="list-group-item list-group-item-action bg-light">Kullanıcı Ekle</a>
+                        <a href="/Admin/GetSpecies" class="list-group-item list-group-item-action bg-light">Hayvan Türleri</a>
+                        <a href="/Admin/AddSpecies" class="list-group-item list-group-item-action bg-light">Hayvan Türü Ekle</a>
+                      
+                    }
+
+                    <a href="/Auth/Logout" class="list-group-item list-group-item-action bg-light">Çıkış Yap</a>
+                </div>
+            </nav>
+        }
+
+        <div class="main-content">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - Veteriner Randevu Sistemi - <a asp-area="" asp-controller="Home" asp-action="Index">Anasayfa</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

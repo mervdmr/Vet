@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "Klinik Ekle";
+
+}
+@inject VetAppointment.Lib.App.Model.IAppContext _appContext;
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .appointment-card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .appointment-header {
+        background-image: url('https://sevimlipettaksi.com/wp-content/uploads/2020/03/Kedi-Ve-Kopek-Ayni-Evde-Yasar-Mi-1.jpg');
+        background-size: cover;
+        background-position: center;
+        height: 200px;
+    }
+
+        .appointment-header h2 {
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+    .form-control:disabled {
+        background-color: #e9ecef;
+    }
+</style>
+<input type="hidden" value="@_appContext.IsSuperAdmin.ToString()" id="IsAdmin" />
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg appointment-card">
+                <div class="appointment-header d-flex align-items-center justify-content-center">
+                    <h2 class="text-center">Klinik Ekle</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form id="createClinicForm">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="City">Şehir</label>
+                                <select id="City" class="form-control">
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="District">İlçe</label>
+                                <select id="District" class="form-control" disabled>
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            @if (_appContext.IsSuperAdmin)
+                            {
+                                <div class="form-group col-md-6">
+                                    <label for="Vet">Kullanıcı</label>
+                                    <select id="Vet" class="form-control" disabled>
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                </div>
+                            }
+                            <div class="form-group col-md-6">
+                                <label for="ClinicName">Klinik Adı</label>
+                                <input type="text" id="ClinicName" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="button" id="createClinicButton" class="btn btn-primary btn-lg mt-4">Onayla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Load cities on page load
+            $.ajax({
+                type: 'GET',
+                url: '/Region/GetCities',
+                success: function (data) {
+                    var citySelect = $('#City');
+                    data.forEach(function (city) {
+                        citySelect.append('<option value="' + city.Id + '">' + city.Name + '</option>');
+                    });
+                }
+            });
+
+            var isAdmin = $("#IsAdmin").val();
+
+            if (isAdmin || isAdmin == "True") {
+                $('#District').on('change', function () {
+                    var vetSelected = $('#Vet');
+                    vetSelected.empty().append('<option value="">Kullanıcı Seç</option>').prop('disabled', false);
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Admin/GetUsers?onlyVet=true',
+                        success: function (data) {
+                            data.forEach(function (vet) {
+                                vetSelected.append('<option value="' + vet.Id + '">' + vet.Name + '</option>');
+                            });
+                        }
+                    });
+
+                });
+
+
+
+            }
+
+            // Load districts when a city is selected
+            $('#City').on('change', function () {
+                var cityId = $(this).val();
+                var districtSelect = $('#District');
+                districtSelect.empty().append('<option value="">İlçe Seç</option>').prop('disabled', true);
+
+                if (cityId) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Region/GetDistricts',
+                        data: { cityId: cityId },
+                        success: function (data) {
+                            districtSelect.prop('disabled', false);
+                            data.forEach(function (district) {
+                                districtSelect.append('<option value="' + district.Id + '">' + district.Name + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+
+
+
+            $('#createClinicButton').on('click', function () {
+                var name = $('#ClinicName').val();
+                var districtId = $('#District').val();
+                var vetId = $("#Vet").val();
+                if (!name || !districtId) {
+                    alert('Lütfen tüm alanları doldurunuz.');
+                    return;
+                }
+                if (isAdmin == "True" && !vetId) {
+                    alert('Lütfen kullanıcı seçiniz.');
+                    return;
+                }
+
+                var formData = {
+                    Name: name,
+                    DistrictId: districtId
+                }
+
+                if (isAdmin == "True") {
+                    formData.UserId = vetId;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Clinic/AddClinic',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.IsSuccess) {
+                            HandleReturnModel(response);
+                            $('#createClinicForm')[0].reset();
+                            $('#District').prop('disabled', true);
+                        } else {
+                            alert('Klinik eklenirken bir hata oluştu.');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

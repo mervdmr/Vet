@@ -1,0 +1,215 @@
+﻿@{
+    ViewData["Title"] = "Create Appointment";
+}
+<style>
+   
+    .appointment-card {
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 2rem; /* Kartın altında boşluk bırak */
+    }
+
+    .appointment-header {
+        background-image: url('https://sevimlipettaksi.com/wp-content/uploads/2020/03/Kedi-Ve-Kopek-Ayni-Evde-Yasar-Mi-1.jpg');
+        background-size: cover;
+        background-position: center;
+        height: 200px;
+    }
+
+        .appointment-header h2 {
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+
+    .form-control:disabled {
+        background-color: #e9ecef;
+    }
+
+</style>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg appointment-card">
+                <div class="appointment-header d-flex align-items-center justify-content-center">
+                    <h2 class="text-center">Randevu Oluştur</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form id="createAppointmentForm">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="City">Şehir</label>
+                                <select id="City" class="form-control">
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="District">İlçe</label>
+                                <select id="District" class="form-control" disabled>
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="Clinic">Klinik</label>
+                                <select id="Clinic" class="form-control" disabled>
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="AppointmentDate">Randevu Tarihi</label>
+                                <input type="date" id="AppointmentDate" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="AvailableTimes">Randevu Saati</label>
+                            <select id="AvailableTimes" class="form-control" disabled>
+                                <option value="">Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="PetName">Hayvan Adı</label>
+                                <input type="text" id="PetName" class="form-control" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="PetType">Havyan Tipi</label>
+                                <select id="PetType" class="form-control">
+                                    <option value="">Seçiniz</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" id="createAppointmentButton" class="btn btn-primary btn-lg mt-4">Onayla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Load cities on page load
+            $.ajax({
+                type: 'GET',
+                url: '/Region/GetCities',
+                success: function (data) {
+                    var citySelect = $('#City');
+                    data.forEach(function (city) {
+                        citySelect.append('<option value="' + city.Id + '">' + city.Name + '</option>');
+                    });
+                }
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: '/Appointment/GetPetTypes',
+                success: function (data) {
+                    var petSelect = $('#PetType');
+                    data.forEach(function (petType) {
+                        petSelect.append('<option value="' + petType.Id + '">' + petType.Name + '</option>');
+                    });
+                }
+            });
+
+            // Load districts when a city is selected
+            $('#City').on('change', function () {
+                var cityId = $(this).val();
+                var districtSelect = $('#District');
+                districtSelect.empty().append('<option value="">İlçe Seç</option>').prop('disabled', true);
+                $('#Clinic').empty().append('<option value="">Klinik Seç</option>').prop('disabled', true);
+
+                if (cityId) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Region/GetDistricts',
+                        data: { cityId: cityId },
+                        success: function (data) {
+                            districtSelect.prop('disabled', false);
+                            data.forEach(function (district) {
+                                districtSelect.append('<option value="' + district.Id + '">' + district.Name + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Load clinics when a district is selected
+            $('#District').on('change', function () {
+                var districtId = $(this).val();
+                var clinicSelect = $('#Clinic');
+                clinicSelect.empty().append('<option value="">Klinik Seç</option>').prop('disabled', true);
+
+                if (districtId) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Clinic/GetClinics',
+                        data: { districtId: districtId },
+                        success: function (data) {
+                            clinicSelect.prop('disabled', false);
+                            data.forEach(function (clinic) {
+                                clinicSelect.append('<option value="' + clinic.Id + '">' + clinic.Name + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            $('#Clinic, #AppointmentDate').on('change', function () {
+                var clinicId = $('#Clinic').val();
+                var appointmentDate = $('#AppointmentDate').val();
+                var availableTimesSelect = $('#AvailableTimes');
+                availableTimesSelect.empty().append('<option value="">Saat Seç</option>').prop('disabled', true);
+
+                if (clinicId && appointmentDate) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/Appointment/GetAvailability',
+                        data: { clinicId: clinicId, date: appointmentDate },
+                        success: function (data) {
+                            availableTimesSelect.prop('disabled', false);
+                            data.forEach(function (time) {
+                                availableTimesSelect.append('<option value="' + time + '">' + time + '</option>');
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Create appointment
+            $('#createAppointmentButton').on('click', function () {
+                var formData = {
+                    ClinicId: $('#Clinic').val(),
+                    AppointmentDate: $('#AppointmentDate').val(),
+                    StartTime: $("#AvailableTimes").val(),
+                    Pet: {
+                        Name: $("#PetName").val(),
+                        SpeciesId: $("#PetType").val()
+                    }
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/Appointment/AddAppointment',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (response) {
+                        alert(response.Message)
+                        if (response.IsSuccess) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+}
